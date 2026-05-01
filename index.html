@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desktop Pet Rock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .scene {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rock-container {
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .rock {
+            width: 180px;
+            height: 140px;
+            background: linear-gradient(145deg, #7f8c8d, #95a5a6);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+            box-shadow:
+                inset -10px -10px 20px rgba(0,0,0,0.3),
+                inset 10px 10px 20px rgba(255,255,255,0.1),
+                0 20px 40px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .rock::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 25%;
+            width: 30%;
+            height: 20%;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+        }
+
+        .rock.dusty {
+            filter: sepia(0.3) brightness(0.9);
+        }
+
+        .rock.dirty {
+            background: linear-gradient(145deg, #6d7d7e, #7a8a8b);
+        }
+
+        .rock.happy {
+            transform: scale(1.05) rotate(-2deg);
+            box-shadow:
+                inset -10px -10px 20px rgba(0,0,0,0.2),
+                inset 10px 10px 20px rgba(255,255,255,0.2),
+                0 25px 50px rgba(0,0,0,0.3),
+                0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .rock.sad {
+            transform: scale(0.95) rotate(2deg);
+            filter: grayscale(0.5);
+        }
+
+        .rock.rolling {
+            animation: rollAway 1s ease-out forwards;
+        }
+
+        @keyframes rollAway {
+            0% { transform: translateX(0) rotate(0); }
+            100% { transform: translateX(500px) rotate(720deg); }
+        }
+
+        /* Eyes */
+        .eyes {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+        }
+
+        .eye {
+            width: 12px;
+            height: 12px;
+            background: #2c3e50;
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .rock.blink .eye {
+            height: 2px;
+            margin-top: 5px;
+        }
+
+        /* Mouth */
+        .mouth {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 10px;
+            border-bottom: 3px solid #2c3e50;
+            border-radius: 0 0 50% 50%;
+            transition: all 0.2s;
+        }
+
+        .rock.happy .mouth {
+            width: 30px;
+            height: 15px;
+            border-bottom: 4px solid #2c3e50;
+        }
+
+        .rock.sad .mouth {
+            border-bottom: 3px solid #2c3e50;
+            transform: translateX(-50%) rotate(180deg);
+            top: 45%;
+        }
+
+        /* Gems */
+        .gem {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
+            cursor: pointer;
+            animation: gemBounce 2s infinite;
+            z-index: 10;
+        }
+
+        .gem.emerald {
+            background: linear-gradient(145deg, #2ecc71, #27ae60);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.6);
+        }
+
+        .gem.sapphire {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.6);
+        }
+
+        .gem.amethyst {
+            background: linear-gradient(145deg, #9b59b6, #8e44ad);
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.6);
+        }
+
+        @keyframes gemBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+        }
+
+        .gem.collected {
+            animation: gemCollect 0.5s forwards;
+        }
+
+        @keyframes gemCollect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* UI */
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #ecf0f1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .ui h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #f39c12;
+            text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+
+        .status {
+            font-size: 16px;
+            margin-bottom: 5px;
+            min-height: 24px;
+        }
+
+        .substatus {
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+
+        .stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            color: #ecf0f1;
+            font-size: 12px;
+            text-align: right;
+        }
+
+        .stats div {
+            margin-bottom: 5px;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #bdc3c7;
+            font-size: 12px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        /* Particles */
+        .heart-particle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 24px;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(0.5); }
+        }
+
+        /* Clean sparkle */
+        .sparkle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            animation: sparkleAnim 0.5s ease-out forwards;
+        }
+
+        @keyframes sparkleAnim {
+            0% { transform: scale(0) rotate(0); opacity: 1; }
+            100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+        }
+
+        .dust-cloud {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(127,140,141,0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: dustFade 1s forwards;
+        }
+
+        @keyframes dustFade {
+            0% { opacity: 0.8; transform: scale(0.5); }
+            100% { opacity: 0; transform: scale(2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <h1>🪨 Desktop Pet Rock</h1>
+        <div class="status" id="status">Your rock is happy and clean!</div>
+        <div class="substatus" id="substatus">Happiness: 100% • Dust: 0%</div>
+    </div>
+
+    <div class="stats">
+        <div>Pet Count: <span id="petCount">0</span></div>
+        <div>Gems Collected: <span id="gemCount">0</span></div>
+        <div>Times Cleaned: <span id="cleanCount">0</span></div>
+        <div>Time Together: <span id="timeTogether">0m</span></div>
+    </div>
+
+    <div class="scene">
+        <div class="rock-container" id="rockContainer">
+            <div class="rock" id="rock">
+                <div class="eyes">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+                <div class="mouth"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hint">
+        Click to pet • Double-click to polish • Right-click to name • Keep it clean • Collect gems • Don't ignore it too long
+    </div>
+
+    <script>
+        const rock = document.getElementById('rock');
+        const rockContainer = document.getElementById('rockContainer');
+        const statusEl = document.getElementById('status');
+        const substatusEl = document.getElementById('substatus');
+        const petCountEl = document.getElementById('petCount');
+        const gemCountEl = document.getElementById('gemCount');
+        const cleanCountEl = document.getElementById('cleanCount');
+        const timeTogetherEl = document.getElementById('timeTogether');
+
+        let petCount = 0;
+        let gemCount = 0;
+        let cleanCount = 0;
+        let startTime = Date.now();
+        let happiness = 100;
+        let dust = 0;
+        let lastInteraction = Date.now();
+        let rockName = "Rocky";
+        let blinkInterval;
+        let dustInterval;
+        let gemInterval;
+        let ignoreCheckInterval;
+
+        const messages = {
+            happy: [
+                "Your rock is happy and clean!",
+                `${rockName} enjoys your company!`,
+                "Rock life is good.",
+                "Pristine condition.",
+                "All is well in rock world."
+            ],
+            content: [
+                `${rockName} is doing fine.`,
+                "Rocky as usual.",
+                "Steady as a stone.",
+                "Satisfactorily stone-like."
+            ],
+            dusty: [
+                `${rockName} is getting dusty...`,
+                "A little dust won't hurt.",
+                "Could use a wipe.",
+                "Starting to look matte."
+            ],
+            dirty: [
+                `${rockName} is dirty!`,
+                "Yikes, that's grim.",
+                "Please clean me...",
+                "Even rocks have standards."
+            ],
+            sad: [
+                `${rockName} feels neglected...`,
+                "Rock is sad. 🪨",
+                "You've been ignoring me.",
+                "I'm just going to... roll away."
+            ],
+            gem: [
+                "A gem appeared! Click it!",
+                " treasure! ",
+                "Shiny object detected!"
+            ]
+        };
+
+        function getRandomMessage(category) {
+            const arr = messages[category];
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function updateUI() {
+            const minutesTogether = Math.floor((Date.now() - startTime) / 60000);
+            timeTogetherEl.textContent = `${minutesTogether}m`;
+
+            petCountEl.textContent = petCount;
+            gemCountEl.textContent = gemCount;
+            cleanCountEl.textContent = cleanCount;
+
+            substatusEl.textContent = `Happiness: ${happiness}% • Dust: ${dust}%`;
+
+            // Update rock appearance
+            rock.classList.remove('dusty', 'dirty', 'happy', 'sad');
+
+            if (dust > 80) {
+                rock.classList.add('dirty');
+                statusEl.textContent = getRandomMessage('dirty');
+                statusEl.style.color = '#e74c3c';
+            } else if (dust > 40) {
+                rock.classList.add('dusty');
+                statusEl.textContent = getRandomMessage('dusty');
+                statusEl.style.color = '#f39c12';
+            } else if (happiness < 30) {
+                rock.classList.add('sad');
+                statusEl.textContent = getRandomMessage('sad');
+                statusEl.style.color = '#95a5a6';
+            } else if (happiness > 70) {
+                rock.classList.add('happy');
+                statusEl.textContent = getRandomMessage('happy');
+                statusEl.style.color = '#2ecc71';
+            } else {
+                statusEl.textContent = getRandomMessage('content');
+                statusEl.style.color = '#ecf0f1';
+            }
+        }
+
+        function petRock() {
+            happiness = Math.min(100, happiness + 10);
+            dust = Math.max(0, dust - 2);
+            petCount++;
+            lastInteraction = Date.now();
+
+            // Spawn hearts
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart-particle';
+                    heart.textContent = ['❤️', '🖤', '💛', '💚', '💙'][Math.floor(Math.random() * 5)];
+                    heart.style.left = (rockContainer.offsetLeft + Math.random() * 180) + 'px';
+                    heart.style.top = (rockContainer.offsetTop + Math.random() * 140) + 'px';
+                    document.body.appendChild(heart);
+                    setTimeout(() => heart.remove(), 1000);
+                }, i * 50);
+            }
+
+            updateUI();
+        }
+
+        function cleanRock() {
+            dust = 0;
+            happiness = Math.min(100, happiness + 20);
+            cleanCount++;
+            lastInteraction = Date.now();
+
+            // Sparkle effect
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.innerHTML = '✨';
+            sparkle.style.left = (rockContainer.offsetLeft + 60) + 'px';
+            sparkle.style.top = (rockContainer.offsetTop + 40) + 'px';
+            sparkle.style.fontSize = '40px';
+            sparkle.style.display = 'flex';
+            sparkle.style.alignItems = 'center';
+            sparkle.style.justifyContent = 'center';
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 500);
+
+            // Dust cloud
+            const dustCloud = document.createElement('div');
+            dustCloud.className = 'dust-cloud';
+            dustCloud.style.left = (rockContainer.offsetLeft - 10) + 'px';
+            dustCloud.style.top = (rockContainer.offsetTop - 10) + 'px';
+            document.body.appendChild(dustCloud);
+            setTimeout(() => dustCloud.remove(), 1000);
+
+            updateUI();
+        }
+
+        function spawnGem() {
+            if (document.querySelector('.gem')) return; // Already one exists
+
+            const gem = document.createElement('div');
+            gem.className = 'gem';
+            const types = ['', 'emerald', 'sapphire', 'amethyst'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            if (type) gem.classList.add(type);
+
+            const x = Math.random() * (window.innerWidth - 100);
+            const y = Math.random() * (window.innerHeight - 200) + 100;
+            gem.style.left = x + 'px';
+            gem.style.top = y + 'px';
+
+            gem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                gem.classList.add('collected');
+                gemCount++;
+                statusEl.textContent = "Gem collected! +1 to your collection!";
+                setTimeout(() => {
+                    gem.remove();
+                    updateUI();
+                }, 500);
+            });
+
+            document.body.appendChild(gem);
+
+            // Auto-remove after 10 seconds if not collected
+            setTimeout(() => {
+                if (gem.parentNode) {
+                    gem.remove();
+                    updateUI();
+                }
+            }, 10000);
+        }
+
+        function rollAway() {
+            if (rock.classList.contains('rolling')) return;
+            rock.classList.add('rolling');
+            statusEl.textContent = `${rockName} rolled away! Click anywhere to find it.`;
+
+            setTimeout(() => {
+                rock.classList.remove('rolling');
+                rockContainer.style.left = Math.random() * (window.innerWidth - 400) + 'px';
+                rockContainer.style.top = Math.random() * (window.innerHeight - 400) + 'px';
+                happiness = 50;
+                dust = 30;
+                lastInteraction = Date.now();
+                updateUI();
+            }, 1000);
+        }
+
+        // Blink occasionally
+        function startBlinking() {
+            blinkInterval = setInterval(() => {
+                rock.classList.add('blink');
+                setTimeout(() => rock.classList.remove('blink'), 150);
+            }, 3000 + Math.random() * 4000);
+        }
+
+        // Dust accumulates over time
+        function startDustAccumulation() {
+            dustInterval = setInterval(() => {
+                if (Date.now() - lastInteraction > 60000) {
+                    dust = Math.min(100, dust + 1);
+                    updateUI();
+                }
+            }, 5000);
+        }
+
+        // Gems appear occasionally
+        function startGemSpawning() {
+            gemInterval = setInterval(() => {
+                if (Math.random() < 0.3 && happiness > 50) {
+                    statusEl.textContent = getRandomMessage('gem');
+                    spawnGem();
+                }
+            }, 15000);
+        }
+
+        // Check for neglect
+        function startNeglectCheck() {
+            ignoreCheckInterval = setInterval(() => {
+                const idleTime = (Date.now() - lastInteraction) / 1000;
+                if (idleTime > 120 && !rock.classList.contains('rolling')) { // 2 minutes
+                    if (Math.random() < 0.1) {
+                        rollAway();
+                    }
+                }
+            }, 10000);
+        }
+
+        // Interactions
+        rock.addEventListener('click', (e) => {
+            e.stopPropagation();
+            petRock();
+        });
+
+        rock.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            cleanRock();
+        });
+
+        rock.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const name = prompt("What would you like to name your rock?", rockName);
+            if (name) {
+                rockName = name;
+                statusEl.textContent = `${rockName} likes their new name!`;
+                happiness = Math.min(100, happiness + 15);
+                lastInteraction = Date.now();
+                updateUI();
+            }
+        });
+
+        // Clicking background to find rock if rolled away
+        document.body.addEventListener('click', (e) => {
+            if (rock.classList.contains('rolling')) return;
+            if (e.target === rock || rock.contains(e.target)) return;
+
+            // Maybe the rock wants attention
+            if (Math.random() < 0.2) {
+                petRock();
+            }
+        });
+
+        // Initialize
+        startBlinking();
+        startDustAccumulation();
+        startGemSpawning();
+        startNeglectCheck();
+        updateUI();
+
+        // Time display update
+        setInterval(updateUI, 60000);
+    </script>
+</body>
+</html>
